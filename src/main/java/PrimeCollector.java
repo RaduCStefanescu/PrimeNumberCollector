@@ -13,6 +13,15 @@ public class PrimeCollector implements Collector<Integer,
         Map<Boolean, List<Integer>>,
         Map<Boolean, List<Integer>>> {
 
+    private IPrimeTester primeTesterStrategy;
+
+    public PrimeCollector(){}
+
+    public PrimeCollector setPrimeTester(IPrimeTester primeTesterImpl){
+        this.primeTesterStrategy = primeTesterImpl;
+        return this;
+    }
+
     @Override
     public Supplier<Map<Boolean, List<Integer>>> supplier() {
         return () -> new HashMap<Boolean, List<Integer>>(){{
@@ -25,7 +34,8 @@ public class PrimeCollector implements Collector<Integer,
     public BiConsumer<Map<Boolean, List<Integer>>, Integer> accumulator() {
         return (Map<Boolean, List<Integer>> accumulator, Integer element)
                 -> {
-            accumulator.get(testIfPrimeEfficient(accumulator.get(true), element))
+            this.primeTesterStrategy.setPrimes(accumulator.get(true));
+            accumulator.get(this.primeTesterStrategy.test(element))
                     .add(element);
         };
     }
@@ -50,19 +60,20 @@ public class PrimeCollector implements Collector<Integer,
                 Characteristics.IDENTITY_FINISH));
     }
 
-    /* simple prime testing method
-       we test division with all numbers between [2, k]
-       where k is the largest number
-       that satisfies k^2 < n
-     */
-    private static boolean testIfPrime(Integer element){
-        return IntStream.rangeClosed(2, (int) Math.sqrt(element))
-                .boxed()
-                .noneMatch(index -> element % index == 0);
-    }
+    public static class PrimeCollectorBuilder {
 
-    private static boolean testIfPrimeEfficient(List<Integer> primes, Integer element){
-        return primes.stream()
-                .noneMatch(index -> element % index == 0);
+        private IPrimeTester primeTester;
+
+        public PrimeCollectorBuilder(){}
+
+        public PrimeCollectorBuilder withStrategy(IPrimeTester tester){
+            this.primeTester = tester;
+            return this;
+        }
+
+        public PrimeCollector build(){
+            return new PrimeCollector()
+                    .setPrimeTester(primeTester);
+        }
     }
 }

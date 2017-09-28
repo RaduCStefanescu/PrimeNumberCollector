@@ -6,16 +6,13 @@ import java.util.function.Supplier;
 import java.util.stream.Collector;
 import java.util.stream.IntStream;
 
-/**
- * Created by Radu on 8/10/2017.
- */
 public class PrimeCollector implements Collector<Integer,
         Map<Boolean, List<Integer>>,
         Map<Boolean, List<Integer>>> {
 
     private IPrimeTester primeTesterStrategy;
 
-    public PrimeCollector(){}
+    private PrimeCollector(){}
 
     public PrimeCollector setPrimeTester(IPrimeTester primeTesterImpl){
         this.primeTesterStrategy = primeTesterImpl;
